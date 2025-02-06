@@ -18,6 +18,17 @@ async function insertCategory(categoryName) {
     console.log("err inserting to the table", err);
   }*/
 }
+async function getCategory(categoryId) {
+  try {
+    const { rows } = await newPool.query(
+      "SELECT * FROM categories WHERE category_id = ($1)",
+      [categoryId]
+    );
+    return rows;
+  } catch (err) {
+    console.log("err getting category", err);
+  }
+}
 async function deleteCategory(categoryId) {
   try {
     await newPool.query(
@@ -38,11 +49,26 @@ async function editCategory(categoryId, userValue) {
   }
 }
 // functions to get all items ,update and delete them from table
-async function getAllItems() {
+async function getAllItems(categoryId) {
   try {
-    const { rows } = await newPool.query("SELECT * FROM items");
+    const { rows } = await newPool.query(
+      "SELECT * FROM items INNER JOIN categories ON category_id = item_category_id WHERE category_id = ($1)",
+      [categoryId]
+    );
+    return rows;
   } catch (err) {
     console.log("err getting items data", err);
+  }
+}
+async function getTotalNumberOfItems(categoryId) {
+  try {
+    const { rows } = await newPool.query(
+      "SELECT COUNT(*) FROM items INNER JOIN categories ON category_id = item_category_id WHERE category_id = ($1)",
+      [categoryId]
+    );
+    return rows;
+  } catch (err) {
+    console.log("err getting items total number", err);
   }
 }
 async function insertItem(obj) {
@@ -78,8 +104,10 @@ async function deleteItem(itemId) {
 export {
   insertCategory,
   getAllCategories,
+  getCategory,
   deleteCategory,
   editCategory,
+  getTotalNumberOfItems,
   getAllItems,
   editItem,
   deleteItem,
