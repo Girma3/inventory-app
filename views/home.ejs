@@ -2,8 +2,70 @@
 <html lang="en">
   <%- include("./partials/header",{title:"Home"})%>
   <body>
+    <header>
+      <div class="flex-row">
+        <h1 class="logo"><span>GYM </span>Store</h1>
+        <button class="add-category-link" data-category="add-cat">
+          Add Category
+        </button>
+      </div>
+      <div class="hero flex-row">
+        <img
+          class="hero-img"
+          src="/images/kong.jpg"
+          alt="gorilla lift barbell"
+        />
+        <div class="hero-detail">
+          <h2>BUY WITH BEST PRICE</h2>
+          <p>
+            We got best Fitness Equipment check out the category and items in it
+            for more.
+          </p>
+        </div>
+      </div>
+    </header>
+
     <main>
-      <h1>Home</h1>
+      <section class="category-holder">
+        <h2 class="cat-title">Choose Category</h2>
+        <%- include("./partials/categoryCard",{categories:categories}) %>
+      </section>
+
+      <section class="modal-holder">
+        <dialog class="form-modal">
+          <button class="closeBtn" data-name="close-modal">X</button>
+          <p>
+            For demo purpose Non-Admin User can create one category that hold
+            one item and can delete and update it.
+          </p>
+
+          <form action="/create/category" method="POST" class="flex-column">
+            <label for="categoryName">Category Name</label>
+            <input
+              type="text"
+              id="categoryName"
+              name="categoryName"
+              required
+              placeholder="Accessories"
+            />
+
+            <button type="submit">Add</button>
+          </form>
+        </dialog>
+      </section>
     </main>
+    <script>
+      const addCategoryBtn = document.querySelector(
+        '[data-category="add-cat"]'
+      );
+      const closeModalBtn = document.querySelector('[data-name="close-modal"]');
+      const formModal = document.querySelector(".form-modal");
+      addCategoryBtn.addEventListener("click", (e) => {
+        formModal.showModal();
+      });
+      closeModalBtn.addEventListener("click", (e) => {
+        formModal.close();
+      });
+    </script>
   </body>
 </html>

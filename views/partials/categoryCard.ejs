@@ -1,0 +1,17 @@
+<% if (categories.length) { %>
+<ul class="flex-row category-holder">
+  <% categories.forEach(function(category) { %>
+  <li class="flex-column card">
+    <h2 class="cat-name"><%= category.category_name %></h2>
+    <p class="total-items">Total items</p>
+    <h3 class="cat-name">10</h3>
+    <p class="about-category">About this category: Lorem ipsum</p>
+    <a href="/category/<%= category.category_name %>" class="see-items-link"
+      >See Items</a
+    >
+  </li>
+  <% }); %>
+</ul>
+<% } else { %>
+<p>No categories available.</p>
+<% } %>
