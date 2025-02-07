@@ -1,0 +1,124 @@
+.nav-holder {
+  gap: 1rem;
+}
+.detail-card {
+  list-style: none;
+  width: 280px;
+  border-radius: 0.2rem;
+  transform: scale(1);
+  background-color: rgb(241, 241, 241);
+  transition: transform 0.8s ease-in-out;
+  cursor: pointer;
+}
+.detail-card:hover {
+  transform: scale(1.03);
+}
+.items-holder {
+  padding: 1rem;
+  gap: 1rem;
+}
+.detail-holder {
+  color: black;
+}
+.item-name,
+.item-description {
+  margin: 0;
+  padding: 0.3rem;
+}
+.image-holder {
+  width: 270px;
+  height: 150px;
+  background-color: white;
+}
+
+.item-price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: orangered;
+}
+/* btn and link style */
+.btn-holder {
+  width: 80%;
+  padding-block: 0.5rem;
+}
+.edit-btn,
+.del-btn {
+  color: yellow;
+  padding: 0.5rem;
+  border-radius: 0.3rem;
+  border: none;
+  outline: none;
+  background-image: linear-gradient(to right, rgb(169, 3, 3), rgb(96, 0, 128));
+  cursor: pointer;
+}
+.back-btn {
+  text-decoration: none;
+}
+.edit-category,
+.back-btn,
+.del-category,
+.add-item-btn {
+  position: relative;
+  border: none;
+  outline: none;
+  color: white;
+  background-color: rgb(0, 0, 0);
+  cursor: pointer;
+  text-align: center;
+}
+.edit-category::after,
+.back-btn::after,
+.del-category::after,
+.add-item-btn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 100%;
+  height: 3px;
+  background-color: rgb(240, 238, 255);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.5s ease-in-out;
+}
+
+.edit-category:hover::after,
+.back-btn:hover::after,
+.del-category:hover::after,
+.add-item-btn:hover::after {
+  transform: scaleX(1);
+}
+/* item form */
+.item-form {
+  gap: 0.5rem;
+}
+.submit-item-btn,.submit-category-btn {
+  width: 90%;
+  border: none;
+  outline: none;
+  border-radius: 0.2rem;
+  padding: 0.7rem;
+  font-size: 1rem;
+  font-weight: 700;
+  background-color: rgb(171 23 150);
+  color: rgb(255, 255, 255);
+}
+/* msg modal */
+/* .msg-modal-holder {
+  position: relative;
+} */
+.msg-modal::backdrop {
+  background-color: red;
+  backdrop-filter: blur(5px);
+}
+.msg-modal {
+  position: absolute;
+  top: 30%;
+  width: 50%;
+  max-width: 300px;
+  background-color: aqua;
+  border-radius: 0.3rem;
+}
+.msg-title {
+  color: black;
+}
