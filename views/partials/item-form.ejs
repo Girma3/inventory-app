@@ -1,0 +1,54 @@
+<dialog class="item-modal" id="itemModal" data-name="item-modal">
+  <button class="closeBtn close-item-modal" data-name="close-modal">X</button>
+  <form
+    action="<%= item ? `/update/item/${item.item_id}` : '/new/item' %>"
+    method="<%= item ? 'PUT' : 'POST' %>"
+    class="flex-column item-form"
+  >
+    <label for="itemName">Name</label>
+    <input
+      type="text"
+      id="itemName"
+      name="itemName"
+      value="<%= item ? item.item_name : '' %>"
+      onchange="handleChange(event)"
+      required
+    />
+
+    <label for="itemDescription">Description</label>
+    <input
+      type="text"
+      id="itemDescription"
+      name="itemDescription"
+      value="<%= item ? item.item_description : '' %>"
+      onchange="handleChange(event)"
+      required
+    />
+
+    <label for="itemPrice">Price</label>
+    <input
+      type="text"
+      id="itemPrice"
+      name="itemPrice"
+      value="<%= item ? item.item_price : '' %>"
+      onchange="handleChange(event)"
+      required
+    />
+
+    <label for="itemImage">Image</label>
+    <input
+      type="file"
+      name="itemImage"
+      id="itemImage"
+      accept="image/png, image/jpeg"
+      onchange="handleChange(event)"
+    />
+
+    <button
+      type="submit"
+      class="submit-item-btn <%= item ? 'update-item' : 'add-new-item' %>"
+    >
+      <%= item ? 'Update Item' : 'Add Item' %>
+    </button>
+  </form>
+</dialog>
