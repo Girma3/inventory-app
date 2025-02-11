@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include("./partials/header")%>
+  <body>
+    <header class="flex-row">
+      <h1><%=categoryName%> (<%=items.length%>)</h1>
+      <nav class="flex-row nav-holder">
+        <a href="/" class="back-btn">Home</a>
+
+        <button class="del-category" data-name="<%=categoryId%>">
+          Delete Category
+        </button>
+
+        <button class="edit-category" data-name="<%=categoryId%>">
+          Edit Category
+        </button>
+
+        <button
+          class="add-item-btn"
+          data-name="add-item"
+          data-category="<%=categoryId%>"
+        >
+          Add item
+        </button>
+      </nav>
+    </header>
+    <main class="detail-main">
+      <section class="flex-row items-holder">
+        <%- include("./partials/itemCard",{items:items})%>
+      </section>
+      <section class="modal-holder">
+        <dialog data-name="del-category-modal">
+          <button
+            class="closeBtn close-category-msg"
+            data-name="close-alert-modal"
+          >
+            X
+          </button>
+          <h3 class="msg-title">
+            Are you sure you want to delete this category?It will also delete
+            the items inside in it!
+          </h3>
+
+          <div class="flex-row">
+            <button class="del-btn" data-name="<%=categoryId%>">Delete</button>
+            <button class="cancel-del-category">Cancel</button>
+          </div>
+        </dialog>
+      </section>
+      <section class="modal-holder">
+        <%- include("./partials/item-form",{categoryId:categoryId,item:item})%>
+      </section>
+      <section class="modal-holder">
+        <%-
+        include("./partials/category-form",{category:category,errors:errors})%>
+      </section>
+    </main>
+    <script>
+      const navHolder = document.querySelector(".nav-holder");
+      const main = document.querySelector("main");
+      //category modal form
+      const categoryModal = document.querySelector(".category-modal");
+      //item modal
+      const itemModal = document.querySelector(".item-modal");
+      //delete category modal msg
+      const categoryDelModal = document.querySelector(
+        '[data-name="del-category-modal"]'
+      );
+      function handleChange(event) {
+        const input = event.target;
+        const form = input.form;
+        // Update the form state with the new input value
+        form[input.name].value = input.value;
+      }
+      const formInputs = document.querySelectorAll("input");
+      formInputs.forEach((input) => {
+        input.addEventListener("input", handleChange);
+      });
+      navHolder.addEventListener("click", (e) => {
+        if (e.target.matches(".edit-category")) {
+          categoryModal.showModal();
+        } else if (e.target.matches(".add-item-btn")) {
+          const categoryNumber = e.target.dataset.category;
+          const endPoint = `/new/item/?category=${categoryNumber}`;
+
+          document.getElementById("item-form").method = "POST";
+          document.getElementById("item-form").action = endPoint;
+
+          document.getElementById("itemName").value = "";
+          document.getElementById("itemDescription").value = "";
+          document.getElementById("itemPrice").value = "";
+          document.getElementById("itemImage").value = "";
+          document.getElementById("item-btn").textContent = "Add Item";
+
+          itemModal.showModal();
+        } else if (e.target.matches(".del-category")) {
+          categoryDelModal.showModal();
+        }
+      });
+      main.addEventListener("click", (e) => {
+        if (e.target.matches(".close-category-modal")) {
+          categoryModal.close();
+        } else if (e.target.matches(".close-item-modal")) {
+          itemModal.close();
+        } else if (e.target.matches(".add-category")) {
+          //request
+          const endPoint = "/category/new";
+          fetch(endPoint, { method: "post" });
+        } else if (e.target.matches(".update-category")) {
+          //request
+          const categoryNum = e.target.dataset.category;
+          const endPoint = `/category/update/${categoryNum}`;
+          fetch(endPoint, { method: "post" });
+        } else if (e.target.matches(".cancel-del-category")) {
+          categoryDelModal.close();
+        } else if (e.target.matches(".close-category-msg")) {
+          categoryDelModal.close();
+        } else if (e.target.matches(".add-new-item")) {
+          //add new item using category number
+
+          const categoryNumber = e.target.dataset.category;
+          const endPoint = `/new/item/{categoryNumber}`;
+
+          fetch(endPoint, { method: "post" });
+        } else if (e.target.matches(".update-item")) {
+          const categoryNum = e.target.dataset.category;
+          const itemId = e.target.dataset.item;
+          const endPoint = `/item/update/${itemId}/?category=${categoryNum}`;
+          fetch(endPoint, { method: "put" });
+        }
+      });
+      //card event to edit and delete items
+      const cardHolder = document.querySelector(".items-holder");
+      cardHolder.addEventListener("click", (e) => {
+        if (e.target.matches(".edit-item")) {
+          //show form
+          const itemNumber = e.target.dataset.item;
+          const endPoint = `/item/${itemNumber}`;
+          fetch(endPoint, { method: "get" })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data) {
+                // Populate the form fields with the fetched item data
+                document.getElementById("item-form").method = "POST";
+                document.getElementById(
+                  "item-form"
+                ).action = `/item/update/:${data.item.item_category_id}`;
+                document.getElementById("itemName").value = data.item_name;
+                document.getElementById("itemDescription").value =
+                  data.item_description;
+                document.getElementById("itemPrice").value = data.item_price;
+
+                //document.getElementById("item-btn").textContent = "Update Item";
+                // document.getElementById("item-btn").dataset.category =
+                data.item_category_id;
+
+                console.log(data);
+              }
+            });
+        } else if (e.target.matches(".delete-item")) {
+          const itemNumber = e.target.dataset.item;
+
+          const categoryNumber = "1";
+          const endPoint = `/item/${itemNumber}?category=${categoryNumber}`;
+
+          console.log(itemNumber);
+          fetch(endPoint, { method: "delete" });
+        } else if (e.target.matches(".update-category")) {
+          //update category by request put method
+          const categoryNumber = e.target.dataset.category;
+          const endPoint = `/category/${categoryNumber}/update`;
+          fetch(endPoint, { method: "put" });
+        }
+      });
+    </script>
+  </body>
+</html>
