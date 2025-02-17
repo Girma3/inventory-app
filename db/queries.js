@@ -1,4 +1,4 @@
-import { newPool } from "./pool.js";
+import newPool from "./pool.js";
 
 // functions to get category ,update and delete them from the table/
 async function getAllCategories() {
@@ -9,43 +9,65 @@ async function getAllCategories() {
     console.log("err getting categories", err);
   }
 }
-async function insertCategory(categoryName) {
-  /* try {
-    await newPool.query("INSERT INTO categories (category_name) VALUES ($1)", [
-      categoryName,
-    ]);
+async function insertCategory(categoryName, categoryDescription) {
+  if (categoryName === undefined || categoryDescription === undefined) {
+    throw new Error("Both categoryName and categoryDescription are required");
+  }
+  try {
+    await newPool.query(
+      "INSERT INTO categories (category_name, category_description) VALUES ($1, $2)",
+      [categoryName, categoryDescription]
+    );
   } catch (err) {
-    console.log("err inserting to the table", err);
-  }*/
+    console.log("Error inserting into the table", err);
+  }
 }
 async function getCategory(categoryId) {
   try {
     const { rows } = await newPool.query(
-      "SELECT * FROM categories WHERE category_id = ($1)",
+      "SELECT * FROM categories WHERE category_id = $1",
       [categoryId]
     );
     return rows;
   } catch (err) {
-    console.log("err getting category", err);
+    console.log("Error getting category", err);
   }
 }
+async function getCategoryByName(categoryName) {
+  try {
+    const { rows } = await newPool.query(
+      "SELECT * FROM categories WHERE category_name = $1",
+      [categoryName]
+    );
+    return rows;
+  } catch (err) {
+    console.log("Error getting category by name", err);
+  }
+}
+
 async function deleteCategory(categoryId) {
   try {
-    await newPool.query(
-      "DELETE FROM categories  WHERE category_id = categoryId"
-    );
+    await newPool.query("BEGIN");
+    await newPool.query("DELETE FROM items WHERE item_category_id = $1", [
+      categoryId,
+    ]);
+    await newPool.query("DELETE FROM categories WHERE category_id = $1", [
+      categoryId,
+    ]);
+    await newPool.query("COMMIT");
   } catch (err) {
-    console.log("err deleting category", err);
+    await newPool.query("ROLLBACK");
+    console.error("Error deleting category:", err);
   }
 }
-async function editCategory(categoryId, userValue) {
+async function editCategory(categoryId, categoryName, categoryDescription) {
   try {
     await newPool.query(
-      "UPDATE categories SET category_name = $1 WHERE category_id = $2",
-      [userValue, categoryId]
+      "UPDATE categories SET category_name = $1, category_description = $2 WHERE category_id = $3",
+      [categoryName, categoryDescription, categoryId]
     );
   } catch (err) {
-    console.log("Error updating category", err);
+    console.error("Error updating category:", err);
   }
 }
 // functions to get all items ,update and delete them from table
@@ -71,33 +93,88 @@ async function getTotalNumberOfItems(categoryId) {
     console.log("err getting items total number", err);
   }
 }
-async function insertItem(obj) {
-  //DESTRUCTURE FORM
-  /* try {
-    await newPool.query(
-      "INSERT INTO  items( item_name,item_description, item_price,item_image_url ) VALUES ($1, $2,  $3, $4),
-      []
+async function insertItem(
+  itemName,
+  itemDescription,
+  itemPrice,
+  itemImage,
+  categoryId
+) {
+  if (!itemName) return;
+  try {
+    const result = await newPool.query(
+      "INSERT INTO items (item_name, item_description, item_price, item_image_url,item_category_id) VALUES ($1, $2, $3, $4,$5) RETURNING *",
+      [itemName, itemDescription, itemPrice, itemImage, categoryId]
     );
+    return result.rows[0]; // Return the inserted item
   } catch (err) {
-    console.log("err updating item", err);
-  }*/
+    console.error("Error inserting item:", err);
+  }
 }
-async function editItem(itemId, itemCategory, formBody) {
-  //destructure the form first
+
+async function editItem(
+  itemId,
+  itemName,
+  itemDescription,
+  itemPrice,
+  itemImage
+) {
+  if (!itemId) return;
   try {
     await newPool.query(
-      "UPDATE items SET item_name =$1, item_description = $2,item_price=$3,item_image=$4 WHERE items_id = itemId ",
-      []
+      "UPDATE items SET item_name = $1, item_description = $2, item_price = $3, item_image_url = $4 WHERE item_id = $5",
+      [itemName, itemDescription, itemPrice, itemImage, itemId]
     );
   } catch (err) {
-    console.log("err updating item", err);
+    console.error("Error updating item:", err);
   }
 }
 async function deleteItem(itemId) {
   try {
-    await newPool.query("DELETE FROM items  WHERE item_id = itemId");
+    await newPool.query("DELETE FROM items  WHERE item_id = ($1)", [itemId]);
   } catch (err) {
-    console.log("err deleting category", err);
+    console.log("err deleting item", err);
+  }
+}
+async function getItemById(itemId) {
+  try {
+    const { rows } = await newPool.query(
+      "SELECT * FROM items WHERE item_id =($1)",
+      [itemId]
+    );
+    return rows;
+  } catch (err) {
+    console.log("err finding item", err);
+  }
+}
+async function totalItemsPrice() {
+  try {
+    const { rows } = await newPool.query("SELECT SUM(item_price) FROM items");
+    return rows;
+  } catch (err) {
+    console.log(err, "can't sum the price total");
+
+    return rows;
+  }
+}
+async function totalCategories() {
+  try {
+    const { rows } = await newPool.query(
+      "SELECT COUNT(*) AS total_categories from categories"
+    );
+    return rows;
+  } catch (err) {
+    console.log(err, "can't count categories");
+  }
+}
+async function totalItems() {
+  try {
+    const { rows } = await newPool.query(
+      "SELECT COUNT(*) AS total_items FROM items"
+    );
+    return rows;
+  } catch (err) {
+    console.log(err, "can't find total items count");
   }
 }
 
@@ -105,10 +182,16 @@ export {
   insertCategory,
   getAllCategories,
   getCategory,
+  getCategoryByName,
   deleteCategory,
   editCategory,
   getTotalNumberOfItems,
   getAllItems,
   editItem,
+  totalItemsPrice,
+  totalCategories,
+  totalItems,
+  getItemById,
+  insertItem,
   deleteItem,
 };
