@@ -13,6 +13,7 @@ import {
   totalItemsPrice,
   totalItems,
   totalCategories,
+  moveItem,
 } from "../db/queries.js";
 import { body, validationResult } from "express-validator";
 let lengthErr = "must be between 3 and 40 characters";
@@ -98,6 +99,7 @@ async function getDetailPage(req, res) {
 
   try {
     const selectedCategory = await getCategory(categoryId);
+    const allCategories = await getAllCategories();
     if (!selectedCategory) {
       return res.status(404).send("Category not found");
     }
@@ -111,6 +113,7 @@ async function getDetailPage(req, res) {
       categoryId: categoryId,
       items: selectedCategoryItems,
       category: selectedCategory[0],
+      categories: allCategories,
       errors: [],
       item: null,
     });
@@ -242,6 +245,32 @@ async function handleCategoryJson(req, res) {
     return res.status(500).send("server error");
   }
 }
+async function handleItemMove(req, res) {
+  const itemId = req.params.id;
+  const categoryId = req.query.category;
+
+  if (!itemId || !categoryId) {
+    return res.status(400).json({ message: "Item ID and Category ID are required" });
+  }
+
+  try {
+    const item = await getItemById(itemId);
+    if (!item.length) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+
+    const category = await getCategory(categoryId);
+    if (!category.length) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    await moveItem(itemId, categoryId);
+    return res.json({ redirect: `/category/${categoryId}` });
+  } catch (err) {
+    console.error("Can't move this item", err);
+    return res.status(500).send("Server Error");
+  }
+}
 export {
   getHomePage,
   getCategoryForm,
@@ -255,4 +284,5 @@ export {
   handleItemJson,
   validateItem,
   handleCategoryJson,
+  handleItemMove
 };

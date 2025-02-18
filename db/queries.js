@@ -177,6 +177,28 @@ async function totalItems() {
     console.log(err, "can't find total items count");
   }
 }
+async function moveItem(itemId, destinationCategory) {
+  try {
+    const item = await getItemById(itemId);
+    if (item.length === 0) {
+      throw new Error("Item not found");
+    }
+    const { item_name, item_description, item_price, item_image_url } = item[0];
+    await newPool.query(
+      "UPDATE items SET item_name = $1, item_description = $2, item_price = $3, item_image_url = $4, item_category_id = $5 WHERE item_id = $6",
+      [
+        item_name,
+        item_description,
+        item_price,
+        item_image_url,
+        destinationCategory,
+        itemId,
+      ]
+    );
+  } catch (err) {
+    console.log("Error while trying to move item:", err);
+  }
+}
 
 export {
   insertCategory,
@@ -194,4 +216,5 @@ export {
   getItemById,
   insertItem,
   deleteItem,
+  moveItem
 };
