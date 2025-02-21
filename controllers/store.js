@@ -16,6 +16,9 @@ import {
   moveItem,
 } from "../db/queries.js";
 import { body, validationResult } from "express-validator";
+
+import fs from "fs";
+
 let lengthErr = "must be between 3 and 40 characters";
 let validateCategory = [
   body("categoryName")
@@ -105,7 +108,7 @@ async function getDetailPage(req, res) {
     }
     const selectedCategoryItems = await getAllItems(categoryId);
     const categoryName = selectedCategory[0].category_name;
-    // console.log(selectedCategory);
+    //console.log(selectedCategoryItems);
 
     res.render("detail-page", {
       title: categoryName,
@@ -141,8 +144,15 @@ async function handleDeleteItem(req, res) {
 
   try {
     const item = await getItemById(itemId);
+    const uploadImage = item[0].item_image_url;
     const category = item[0];
     const categoryId = category.item_category_id;
+    //delete upload image if there is one
+    if (uploadImage) {
+      fs.unlink(`${uploadImage}`, (err) => {
+        if (err) return err;
+      });
+    }
     await deleteItem(itemId);
     res.json({ redirect: `/category/${categoryId}` });
   } catch (err) {
@@ -157,12 +167,12 @@ async function handleItemEdit(req, res) {
   }
   const itemId = req.params.id;
 
-  const { itemName, itemDescription, itemPrice, itemImage } = req.body;
+  const { itemName, itemDescription, itemPrice } = req.body;
+  const itemImage = req.file ? req.file.path : null;
 
   try {
     const item = await getItemById(itemId);
     const categoryId = item[0].item_category_id;
-    console.log(categoryId);
     await editItem(itemId, itemName, itemDescription, itemPrice, itemImage);
     return res.json({ redirect: `/category/${categoryId}` });
   } catch (err) {
@@ -178,7 +188,8 @@ async function handleAddItem(req, res) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { itemName, itemDescription, itemPrice, itemImage } = req.body;
+  const { itemName, itemDescription, itemPrice } = req.body;
+  const itemImage = req.file ? req.file.path : null;
 
   try {
     await insertItem(
@@ -201,6 +212,13 @@ async function handleItemJson(req, res) {
   const itemId = req.params.id;
   try {
     const item = await getItemById(itemId);
+    //remove image to accept new image since the input is optional
+    const uploadImage = item[0].item_image_url;
+    if (uploadImage) {
+      fs.unlink(uploadImage, (err) => {
+        if (err) return console.log(err);
+      });
+    }
     if (!item) {
       return res.status(404).send("Item not found");
     }
@@ -250,7 +268,9 @@ async function handleItemMove(req, res) {
   const categoryId = req.query.category;
 
   if (!itemId || !categoryId) {
-    return res.status(400).json({ message: "Item ID and Category ID are required" });
+    return res
+      .status(400)
+      .json({ message: "Item ID and Category ID are required" });
   }
 
   try {
@@ -284,5 +304,5 @@ export {
   handleItemJson,
   validateItem,
   handleCategoryJson,
-  handleItemMove
+  handleItemMove,
 };
