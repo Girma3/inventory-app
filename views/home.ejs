@@ -5,6 +5,29 @@
     <header>
       <div class="flex-row">
         <h1 class="logo"><span>GYM </span>Store</h1>
+        <div class="search-result-holder">
+          <form action="/search" method="get" class="flex-row" id="search-form">
+            <label
+              for="searchInput"
+              aria-label="search category or item by name"
+            >
+              <input
+                type="text"
+                name="searchInput"
+                id="searchInput"
+                class="search-input"
+                minlength="3"
+                placeholder="Enter category or item name"
+              />
+              <span class="err-msg-search"></span>
+            </label>
+            <button type="submit" class="search-btn"></button>
+          </form>
+          <div class="dropdown">
+            <ul class="search-ul" id="searchResultDropdown"></ul>
+          </div>
+        </div>
+
         <button class="add-category-link" data-category="add-cat">
           Add Category
         </button>
@@ -26,45 +49,28 @@
     </header>
 
     <main>
+      <section>
+        <p>Total categories: <%= countCategories%></p>
+        <p>Total items : <%= countItems %></p>
+        <p>Total items Price: <%= sumPrice%></p>
+      </section>
       <section class="category-holder">
         <h2 class="cat-title">Choose Category</h2>
         <%- include("./partials/categoryCard",{categories:categories}) %>
       </section>
 
       <section class="modal-holder">
-        <dialog class="form-modal">
-          <button class="closeBtn" data-name="close-modal">X</button>
-          <p>
-            For demo purpose Non-Admin User can create one category that hold
-            one item and can delete and update it.
-          </p>
-
-          <form action="/create/category" method="POST" class="flex-column">
-            <label for="categoryName">Category Name</label>
-            <input
-              type="text"
-              id="categoryName"
-              name="categoryName"
-              required
-              placeholder="Accessories"
-            />
-
-            <button type="submit">Add</button>
-          </form>
-        </dialog>
+        <%- include("./partials/category-form",{category:category})%>
       </section>
     </main>
-    <script>
-      const addCategoryBtn = document.querySelector(
-        '[data-category="add-cat"]'
-      );
-      const closeModalBtn = document.querySelector('[data-name="close-modal"]');
-      const formModal = document.querySelector(".form-modal");
-      addCategoryBtn.addEventListener("click", (e) => {
-        formModal.showModal();
-      });
-      closeModalBtn.addEventListener("click", (e) => {
-        formModal.close();
+
+    <script type="module">
+      document.addEventListener("DOMContentLoaded", function () {
+        import("/home-page.js")
+          .then((module) => {})
+          .catch((err) => {
+            console.error("Failed to load module:", err);
+          });
       });
     </script>
   </body>
