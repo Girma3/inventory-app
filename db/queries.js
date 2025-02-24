@@ -18,6 +18,7 @@ async function insertCategory(categoryName, categoryDescription) {
       "INSERT INTO categories (category_name, category_description) VALUES ($1, $2)",
       [categoryName, categoryDescription]
     );
+    return true;
   } catch (err) {
     console.log("Error inserting into the table", err);
   }
@@ -199,7 +200,28 @@ async function moveItem(itemId, destinationCategory) {
     console.log("Error while trying to move item:", err);
   }
 }
-
+async function findCategory(value) {
+  try {
+    const { rows } = await newPool.query(
+      "SELECT * FROM categories WHERE category_name ILIKE $1",
+      [`%${value}%`]
+    );
+    return rows.length ? rows : [];
+  } catch (err) {
+    console.log("Error finding category:", err);
+  }
+}
+async function findItem(value) {
+  try {
+    const { rows } = await newPool.query(
+      "SELECT * FROM items WHERE item_name ILIKE $1",
+      [`%${value}%`]
+    );
+    return rows.length ? rows : [];
+  } catch (err) {
+    console.log(err, "can't find item");
+  }
+}
 export {
   insertCategory,
   getAllCategories,
@@ -216,5 +238,7 @@ export {
   getItemById,
   insertItem,
   deleteItem,
-  moveItem
+  moveItem,
+  findCategory,
+  findItem,
 };

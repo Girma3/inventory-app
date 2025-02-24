@@ -1,3 +1,4 @@
+import { promises } from "dns";
 import {
   getAllCategories,
   getAllItems,
@@ -14,6 +15,8 @@ import {
   totalItems,
   totalCategories,
   moveItem,
+  findCategory,
+  findItem,
 } from "../db/queries.js";
 import { body, validationResult } from "express-validator";
 
@@ -69,6 +72,7 @@ async function getHomePage(req, res) {
       title: "Home",
       categories: categoriesWithItemCounts,
       countCategories: countCategories[0].total_categories,
+      category: null,
       countItems: countItems[0].total_items,
       sumPrice: sumPrice[0].sum,
       errors: errors.array(),
@@ -78,22 +82,23 @@ async function getHomePage(req, res) {
     res.status(500).send("Server Error");
   }
 }
-async function getCategoryForm(req, res) {
+async function handleAddCategory(req, res) {
   const errors = validationResult(req);
   const { categoryName, categoryDescription } = req.body;
-  console.log(categoryName, categoryDescription);
+  
 
   if (!errors.isEmpty()) {
     return res.json({ errors: errors.array() });
   }
-
   try {
-    await insertCategory(categoryName, categoryDescription);
-    //categoryDescription);
-    return res.status(200).json({ message: "Category created successfully!" });
-    //res.redirect("/");
+    const result = await insertCategory(categoryName, categoryDescription);
+    if (result === true) {
+      return res
+        .status(200)
+        .json({ redirect: "/", message: "Category created successfully!" });
+    }
   } catch (err) {
-    console.error("Can't create category", err);
+    console.error("Can't while creating category", err);
     return res.status(500).send("Server Error");
   }
 }
@@ -108,7 +113,6 @@ async function getDetailPage(req, res) {
     }
     const selectedCategoryItems = await getAllItems(categoryId);
     const categoryName = selectedCategory[0].category_name;
-    //console.log(selectedCategoryItems);
 
     res.render("detail-page", {
       title: categoryName,
@@ -169,9 +173,14 @@ async function handleItemEdit(req, res) {
 
   const { itemName, itemDescription, itemPrice } = req.body;
   const itemImage = req.file ? req.file.path : null;
+  console.log(itemImage);
 
   try {
     const item = await getItemById(itemId);
+    if (!item.length) {
+      console.log("Item not found for ID:", itemId);
+      return res.status(404).json({ message: "Item not found" });
+    }
     const categoryId = item[0].item_category_id;
     await editItem(itemId, itemName, itemDescription, itemPrice, itemImage);
     return res.json({ redirect: `/category/${categoryId}` });
@@ -213,14 +222,15 @@ async function handleItemJson(req, res) {
   try {
     const item = await getItemById(itemId);
     //remove image to accept new image since the input is optional
+
+    if (!item) {
+      return res.status(404).send("Item not found");
+    }
     const uploadImage = item[0].item_image_url;
     if (uploadImage) {
       fs.unlink(uploadImage, (err) => {
         if (err) return console.log(err);
       });
-    }
-    if (!item) {
-      return res.status(404).send("Item not found");
     }
     return res.json(item[0]);
   } catch (err) {
@@ -229,9 +239,9 @@ async function handleItemJson(req, res) {
   }
 }
 async function handleUpdateCategory(req, res) {
-  const { categoryName, categoryDescription } = req.body;
-  const categoryId = req.params.id;
   const errors = validationResult(req);
+  const categoryId = req.params.id;
+  const { categoryName, categoryDescription } = req.body;
 
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -291,9 +301,56 @@ async function handleItemMove(req, res) {
     return res.status(500).send("Server Error");
   }
 }
+async function searchCategory(value) {
+  if (!value) return;
+  try {
+    let result = await findCategory(value);
+    if (result.length) {
+      res.status(200).json({ categories: result });
+    } else {
+      res.status(400).json({ message: "No result" });
+    }
+  } catch (err) {
+    console.log(err, "can't find with this value");
+  }
+}
+async function searchItem(value) {
+  if (!value) return;
+  try {
+    let result = await findItem(value);
+    if (result.length) {
+      res.status(200).json({ categories: result });
+    } else {
+      res.status(300).json({ message: "No result" });
+    }
+  } catch (err) {
+    console.log(err, "can't find with this value");
+  }
+}
+async function handleSearch(req, res) {
+  const value = req.params.id;
+  if (!value) return;
+  try {
+    const [categoryResult, itemsResult] = await Promise.all([
+      findCategory(value),
+      findItem(value),
+    ]);
+    if (categoryResult.length || itemsResult.length) {
+      return res
+        .status(200)
+        .json({ categories: categoryResult, items: itemsResult });
+    } else {
+      res.status(400).json({ message: "No Result Found." });
+    }
+  } catch (err) {
+    console.log(err, "err finding category or item  ");
+    res.status(500).json({ message: "server error" });
+  }
+}
+
 export {
   getHomePage,
-  getCategoryForm,
+  handleAddCategory,
   validateCategory,
   getDetailPage,
   handleDeleteCategory,
@@ -305,4 +362,7 @@ export {
   validateItem,
   handleCategoryJson,
   handleItemMove,
+  searchCategory,
+  searchItem,
+  handleSearch,
 };
