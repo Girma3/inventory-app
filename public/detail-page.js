@@ -22,8 +22,8 @@ formInputs.forEach((input) => {
     }
   });
 });
-function toggleDropdown() {
-  const dropdown = document.getElementById("moveDropdown");
+function toggleDropdown(cell) {
+  const dropdown = cell.querySelector("#moveDropdown");
   dropdown.classList.toggle("show");
   if (dropdown.classList.contains("show")) {
     const items = dropdown.getElementsByClassName("category-li");
@@ -88,6 +88,7 @@ if (categoryFormUpdate) {
     const categoryNum = submitBtn.dataset.category;
     const formData = new FormData(categoryFormUpdate);
     const formJson = JSON.stringify(Object.fromEntries(formData.entries()));
+
     const endPoint = `/category/update/${categoryNum}`;
 
     try {
@@ -122,13 +123,11 @@ if (updateItem) {
     const updateItemBtn = updateItem.querySelector(".update-item");
     const itemId = updateItemBtn.dataset.item;
     const formData = new FormData(updateItem);
-    const formJson = JSON.stringify(Object.fromEntries(formData.entries()));
     const endPoint = `/update/item/${itemId}`;
 
     try {
       const response = await fetch(endPoint, {
         method: "put",
-
         body: formData,
       });
       const result = await response.json();
@@ -155,15 +154,12 @@ if (itemForm) {
 
     const submitBtn = itemForm.querySelector("#item-btn");
     const formData = new FormData(itemForm);
-    const jsonData = JSON.stringify(Object.fromEntries(formData.entries()));
-
     const categoryNum =
       document.querySelector(".add-item-btn").dataset.category;
 
     try {
       const response = await fetch(`/item/new/${categoryNum}`, {
         method: "post",
-
         body: formData,
       });
       const result = await response.json();
@@ -210,6 +206,12 @@ cardHolder.addEventListener("click", async function (e) {
       }
     } catch (err) {
       console.log(err, "can't delete item");
+    }
+  } else if (e.target.matches(".move-btn")) {
+    const cardNum = e.target.dataset.move;
+    const card = document.querySelector(`[data-card='${cardNum}']`);
+    if (card) {
+      toggleDropdown(card);
     }
   }
 });
