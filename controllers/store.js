@@ -17,6 +17,7 @@ import {
   moveItem,
   findCategory,
   findItem,
+  findItemStockStatus,
 } from "../db/queries.js";
 import { body, validationResult } from "express-validator";
 
@@ -52,6 +53,10 @@ let validateItem = [
     .isLength({ min: 3, max: 40 })
     .withMessage(`${lengthErr}`),
   body("itemPrice").trim().notEmpty().withMessage("price can't be empty"),
+  body("itemInStock")
+    .trim()
+    .notEmpty()
+    .withMessage("stock value can't be empty"),
 ];
 async function getHomePage(req, res) {
   const errors = validationResult(req);
@@ -60,6 +65,7 @@ async function getHomePage(req, res) {
     const sumPrice = await totalItemsPrice();
     const countItems = await totalItems();
     const countCategories = await totalCategories();
+    const stockStatus = await findItemStockStatus();
 
     const categoriesWithItemCounts = await Promise.all(
       allCategories.map(async (category) => {
@@ -75,6 +81,7 @@ async function getHomePage(req, res) {
       category: null,
       countItems: countItems[0].total_items,
       sumPrice: sumPrice[0].sum,
+      itemStockStatus: stockStatus,
       errors: errors.array(),
     });
   } catch (err) {
@@ -85,7 +92,6 @@ async function getHomePage(req, res) {
 async function handleAddCategory(req, res) {
   const errors = validationResult(req);
   const { categoryName, categoryDescription } = req.body;
-  
 
   if (!errors.isEmpty()) {
     return res.json({ errors: errors.array() });
@@ -113,6 +119,7 @@ async function getDetailPage(req, res) {
     }
     const selectedCategoryItems = await getAllItems(categoryId);
     const categoryName = selectedCategory[0].category_name;
+    console.log(selectedCategoryItems);
 
     res.render("detail-page", {
       title: categoryName,
@@ -171,18 +178,25 @@ async function handleItemEdit(req, res) {
   }
   const itemId = req.params.id;
 
-  const { itemName, itemDescription, itemPrice } = req.body;
+  const { itemName, itemDescription, itemPrice, itemInStock } = req.body;
   const itemImage = req.file ? req.file.path : null;
-  console.log(itemImage);
 
   try {
     const item = await getItemById(itemId);
+
     if (!item.length) {
       console.log("Item not found for ID:", itemId);
       return res.status(404).json({ message: "Item not found" });
     }
     const categoryId = item[0].item_category_id;
-    await editItem(itemId, itemName, itemDescription, itemPrice, itemImage);
+    await editItem(
+      itemId,
+      itemName,
+      itemDescription,
+      itemPrice,
+      itemInStock,
+      itemImage
+    );
     return res.json({ redirect: `/category/${categoryId}` });
   } catch (err) {
     console.log(err, "can't edit item");
@@ -197,7 +211,7 @@ async function handleAddItem(req, res) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { itemName, itemDescription, itemPrice } = req.body;
+  const { itemName, itemDescription, itemPrice, itemInStock } = req.body;
   const itemImage = req.file ? req.file.path : null;
 
   try {
@@ -205,6 +219,7 @@ async function handleAddItem(req, res) {
       itemName,
       itemDescription,
       itemPrice,
+      itemInStock,
       itemImage,
       categoryId
     );
