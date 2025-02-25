@@ -98,14 +98,15 @@ async function insertItem(
   itemName,
   itemDescription,
   itemPrice,
+  itemInStock,
   itemImage,
   categoryId
 ) {
   if (!itemName) return;
   try {
     const result = await newPool.query(
-      "INSERT INTO items (item_name, item_description, item_price, item_image_url,item_category_id) VALUES ($1, $2, $3, $4,$5) RETURNING *",
-      [itemName, itemDescription, itemPrice, itemImage, categoryId]
+      "INSERT INTO items (item_name, item_description, item_price,item_instock, item_image_url,item_category_id) VALUES ($1, $2, $3, $4,$5,$6) RETURNING *",
+      [itemName, itemDescription, itemPrice, itemInStock, itemImage, categoryId]
     );
     return result.rows[0]; // Return the inserted item
   } catch (err) {
@@ -118,13 +119,14 @@ async function editItem(
   itemName,
   itemDescription,
   itemPrice,
+  itemInStock,
   itemImage
 ) {
   if (!itemId) return;
   try {
     await newPool.query(
-      "UPDATE items SET item_name = $1, item_description = $2, item_price = $3, item_image_url = $4 WHERE item_id = $5",
-      [itemName, itemDescription, itemPrice, itemImage, itemId]
+      "UPDATE items SET item_name = $1, item_description = $2, item_price = $3,item_instock = $4, item_image_url = $5 WHERE item_id = $6",
+      [itemName, itemDescription, itemPrice, itemInStock, itemImage, itemId]
     );
   } catch (err) {
     console.error("Error updating item:", err);
@@ -150,12 +152,12 @@ async function getItemById(itemId) {
 }
 async function totalItemsPrice() {
   try {
-    const { rows } = await newPool.query("SELECT SUM(item_price) FROM items");
+    const { rows } = await newPool.query(
+      "SELECT SUM(item_price * item_instock) FROM items"
+    );
     return rows;
   } catch (err) {
     console.log(err, "can't sum the price total");
-
-    return rows;
   }
 }
 async function totalCategories() {
@@ -184,13 +186,20 @@ async function moveItem(itemId, destinationCategory) {
     if (item.length === 0) {
       throw new Error("Item not found");
     }
-    const { item_name, item_description, item_price, item_image_url } = item[0];
+    const {
+      item_name,
+      item_description,
+      item_price,
+      item_instock,
+      item_image_url,
+    } = item[0];
     await newPool.query(
-      "UPDATE items SET item_name = $1, item_description = $2, item_price = $3, item_image_url = $4, item_category_id = $5 WHERE item_id = $6",
+      "UPDATE items SET item_name = $1, item_description = $2, item_price = $3,item_instock=$4, item_image_url = $5, item_category_id = $6 WHERE item_id = $7",
       [
         item_name,
         item_description,
         item_price,
+        item_inStock,
         item_image_url,
         destinationCategory,
         itemId,
@@ -222,6 +231,16 @@ async function findItem(value) {
     console.log(err, "can't find item");
   }
 }
+async function findItemStockStatus() {
+  try {
+    const {rows } = await newPool.query(
+      "SELECT *  FROM items WHERE item_instock = 0 "
+    );
+    return rows
+  } catch (err) {
+    console.log(err, "err while finding stock status for item");
+  }
+}
 export {
   insertCategory,
   getAllCategories,
@@ -241,4 +260,5 @@ export {
   moveItem,
   findCategory,
   findItem,
+  findItemStockStatus
 };
