@@ -1,0 +1,11 @@
+<% if (itemStockStatus.length) { %>
+<ul class="stock-ul">
+  <% itemStockStatus.forEach(function(item) { %>
+  <li class="stock-li">
+    <a href="/category/<%= item.item_category_id %>"><%= item.item_name %></a>
+  </li>
+  <% }) %>
+</ul>
+<% } else { %>
+<p class="stock-ul stock-info">No items run out of stock.</p>
+<% } %>
