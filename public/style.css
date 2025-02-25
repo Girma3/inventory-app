@@ -36,12 +36,15 @@ a {
   color: rgb(255, 0, 238);
 }
 .add-category-link {
+  border: none;
+  outline: none;
   text-decoration: none;
   padding: 0.5rem;
   border-radius: 1rem;
   color: black;
   font-size: 0.7rem;
   font-weight: 700;
+  letter-spacing: 1px;
   background-color: yellow;
 }
 .cat-title {
@@ -113,6 +116,11 @@ a {
   background-color: black;
   color: white;
 }
+h3 {
+  font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+  text-shadow: 1px 0 1px rgb(4, 255, 0);
+  text-align: center;
+}
 /* form style */
 input {
   width: 90%;
@@ -160,7 +168,8 @@ input:focus {
   width: 300px;
 }
 
-.search-ul {
+.search-ul,
+.stock-ul {
   margin: 0;
   padding: 0;
   max-width: 60%;
@@ -172,15 +181,46 @@ input:focus {
   background-color: white;
   letter-spacing: 1px;
 }
-.search-li {
+.search-li,
+.stock-li {
   font-size: 0.7rem;
   font-weight: 600;
   text-align: center;
   padding: 0.2rem;
 }
-.search-li > a {
+.search-li > a,
+.stock-li > a {
   text-decoration: none;
   color: black;
+}
+.stock-li {
+  background-color: rgb(255, 187, 0);
+}
+.stock-btn {
+  padding: 0.3rem;
+  border-radius: 2px;
+  background-color: yellow;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.stock-ul {
+  display: none;
+  position: absolute;
+  right: 0;
+}
+.show-out {
+  display: block;
+}
+.status-info {
+  align-items: start;
+}
+
+.stock-info {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: rgb(0, 0, 0);
 }
 .search-input {
   padding-inline: 1rem;
@@ -196,6 +236,7 @@ input:focus {
 .dropdown li:hover {
   background-color: #efff0a;
 }
+
 .err-msg-search {
   font-size: 0.5rem;
   color: yellow;
